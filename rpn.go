@@ -17,8 +17,8 @@ const (
 
 func Parse(expression string) (*Stack, error) {
 	exp := strings.Split(expression, " ")
-	if len(exp) < 3 {
-		return nil, fmt.Errorf("Incomplete expression deteced")
+	if len(exp) < 3 || !isOperand(exp[len(exp)-1]) {
+		return nil, fmt.Errorf("Incomplete expression")
 	}
 
 	st := NewStack()
@@ -31,12 +31,12 @@ func Parse(expression string) (*Stack, error) {
 			continue
 		}
 
-		num, err := strconv.Atoi(v)
+		num, err := strconv.ParseFloat(v, 4)
 		if err != nil {
-			if isOperand(v) && len(vals) == 2 {
+			if isOperand(v) && len(vals) >= 2 {
 				expr := &Expr{
-					FirstVal:  vals[0],
-					SecondVal: vals[1],
+					FirstVal:  vals[len(vals)-2],
+					SecondVal: vals[len(vals)-1],
 					Operation: v,
 				}
 				st.Push(*expr)
@@ -57,7 +57,7 @@ func parsenEvalGroup(groupExpr string) float64 {
 
 	exp := &Expr{}
 	for _, e := range expr {
-		num, err := strconv.Atoi(e)
+		num, err := strconv.ParseFloat(e, 64)
 		if err != nil {
 			if isOperand(e) && len(vals) == 2 {
 				exp.FirstVal = vals[0]
