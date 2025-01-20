@@ -19,7 +19,6 @@ const (
 	POW  = "^"
 )
 
-// single: 7 9 +
 func Eval(expression string) *Expr {
 	expression = strings.TrimSpace(expression)
 	expr := &Expr{}
@@ -65,6 +64,7 @@ func Eval(expression string) *Expr {
 
 func evalGroup(expression string) *Expr {
 	// group: (7 9 -) (4 6 ^) -
+	// nested: ((4 2 -) (4 2 ^) -) (5 7 +) -
 	exprVals := []float64{}
 	currentVals := []float64{}
 	e := &Expr{}
