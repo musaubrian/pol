@@ -1,9 +1,14 @@
 package main
 
 type Expr struct {
+	Raw string
+
 	FirstVal  float64
 	SecondVal float64
 	Operation string
+
+	Result float64
+	Err    error
 }
 
 type Stack struct {
@@ -18,27 +23,16 @@ func (s *Stack) Push(expr Expr) {
 	s.Expressions = append(s.Expressions, expr)
 }
 
-func (s *Stack) Pop() {
+func (s *Stack) Pop() Expr {
 	if !s.isValid() {
-		return
+		return Expr{}
 	}
 
-	if len(s.Expressions) == 2 {
-		s.Expressions = s.Expressions[:len(s.Expressions)-1]
-		return
-	}
+	last := s.Expressions[len(s.Expressions)-1]
 
-	s.Expressions = s.Expressions[:len(s.Expressions)-2]
-}
+	s.Expressions = s.Expressions[:len(s.Expressions)-1]
 
-func (s *Stack) Eval() []float64 {
-	expResults := []float64{}
-	for _, exp := range s.Expressions {
-		val := Calc(exp)
-		expResults = append(expResults, val)
-	}
-
-	return expResults
+	return last
 }
 
 func (s *Stack) isValid() bool {

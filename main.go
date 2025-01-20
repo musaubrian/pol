@@ -19,7 +19,7 @@ func main() {
 	if startRepl {
 		StartRepl()
 	} else if len(file) > 0 {
-		log.Info("File parsing is unimplemented")
+		EvalFile(file)
 	} else {
 		log.Warn("No action specified")
 		flag.Usage()

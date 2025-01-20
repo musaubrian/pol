@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"math"
+	"os"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -15,84 +18,146 @@ const (
 	POW  = "^"
 )
 
-func Parse(expression string) (*Stack, error) {
-	exp := strings.Split(expression, " ")
-	if len(exp) < 3 || !isOperand(exp[len(exp)-1]) {
-		return nil, fmt.Errorf("Incomplete expression")
+// single: 7 9 +
+func Eval(expression string) *Expr {
+	expression = strings.TrimSpace(expression)
+	expr := &Expr{}
+
+	if strings.HasPrefix(expression, "(") {
+		evalGroup(expression)
 	}
 
+	exprVals := []float64{}
+
+	for _, char := range strings.Split(expression, " ") {
+
+		val, err := strconv.ParseFloat(char, 64)
+		if err != nil {
+			if isOperator(char) {
+				expr.Raw = expression
+				expr.FirstVal = exprVals[0]
+				expr.SecondVal = exprVals[1]
+				expr.Operation = char
+
+				expr.calc()
+
+				exprVals = []float64{}
+				continue
+			}
+
+			return &Expr{
+				Raw: expression,
+				Err: fmt.Errorf("Incomplete Expression"),
+			}
+		}
+		exprVals = append(exprVals, val)
+	}
+
+	fmt.Println("GROUPD: ", expr)
+	return expr
+}
+
+func evalGroup(expression string) *Expr {
+	// group: (7 9 -) (4 6 ^) -
+	fmt.Println("GROUP: ", expression)
+
+	exprVals := []float64{}
+	e := &Expr{}
 	st := NewStack()
 
-	vals := []float64{}
-	for _, v := range exp {
-		if strings.HasPrefix(v, "(") {
-			res := parsenEvalGroup(v)
-			vals = append(vals, res)
+	for _, char := range expression {
+		switch {
+		case char == '(' || unicode.IsSpace(char):
 			continue
-		}
+		case char == ')':
+			fmt.Println("End of expr, evaluate here", e)
+			st.Push(*e)
 
-		num, err := strconv.ParseFloat(v, 4)
-		if err != nil {
-			if isOperand(v) && len(vals) >= 2 {
-				expr := &Expr{
-					FirstVal:  vals[len(vals)-2],
-					SecondVal: vals[len(vals)-1],
-					Operation: v,
-				}
-				st.Push(*expr)
-				vals = []float64{}
+		case unicode.IsNumber(char):
+			num, err := strconv.ParseFloat(string(char), 64)
+			if err != nil {
+				fmt.Println("Failed to convert: ", string(char))
 			}
-			continue
+			exprVals = append(exprVals, num)
+		case isOperator(string(char)) && len(exprVals) >= 2:
+			e.FirstVal = exprVals[len(exprVals)-2]
+			e.SecondVal = exprVals[len(exprVals)-1]
+			e.Operation = string(char)
+			e.calc()
 		}
-		vals = append(vals, float64(num))
 	}
 
-	return st, nil
+	fmt.Println("create new expression", st)
+	return e
 }
 
-// Workaround to allow working with parenthesis
-func parsenEvalGroup(groupExpr string) float64 {
-	expr := strings.Split(groupExpr, "")
-	vals := []float64{}
+func EvalFile(filepath string) {
+	f, err := os.Open(filepath)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	defer f.Close()
 
-	exp := &Expr{}
-	for _, e := range expr {
-		num, err := strconv.ParseFloat(e, 64)
-		if err != nil {
-			if isOperand(e) && len(vals) == 2 {
-				exp.FirstVal = vals[0]
-				exp.SecondVal = vals[1]
-				exp.Operation = e
-				vals = []float64{}
-			}
+	sc := bufio.NewScanner(f)
+	st := NewStack()
+	for sc.Scan() {
+		expr := sc.Text()
+		evaluated := Eval(expr)
+		st.Push(*evaluated)
+	}
+	if sc.Err() != nil {
+		log.Error(sc.Err().Error())
+	}
+
+	totalExpresion := 0
+	errordExpression := 0
+	for _, ex := range st.Expressions {
+		totalExpresion += 1
+		if ex.Err != nil {
+			printVals(ex.Raw, ex.Err.Error(), true)
+			errordExpression += 1
 			continue
 		}
-		vals = append(vals, float64(num))
+		printVals(ex.Raw, fmt.Sprint(ex.Result), false)
 	}
-	return Calc(*exp)
+	fmt.Printf(colorize(DARK, bold("\nEvaluated: (%d)\nFailed: (%d)\n")), totalExpresion, errordExpression)
 }
 
-func Calc(expr Expr) float64 {
+func printVals(pre, post string, err bool) {
+	sep := ":="
+	postColor := DARK
+	if err {
+		postColor = REDISH
+	}
+	fmt.Printf("'%s' %s %s\n", colorize(DIM, bold(pre)), colorize(BLUEISH, bold(sep)), colorize(postColor, bold(post)))
+}
+
+func bold(v string) string {
+	return fmt.Sprintf("\033[1m%s\033[21m", v)
+}
+
+func (e *Expr) calc() {
 	var result float64
 
-	switch expr.Operation {
+	switch e.Operation {
 	case ADD:
-		result = expr.FirstVal + expr.SecondVal
+		result = e.FirstVal + e.SecondVal
 	case SUB:
-		result = expr.FirstVal - expr.SecondVal
+		result = e.FirstVal - e.SecondVal
 	case MULT:
-		result = expr.FirstVal * expr.SecondVal
+		result = e.FirstVal * e.SecondVal
 	case DIV:
-		result = expr.FirstVal / expr.SecondVal
+		result = e.FirstVal / e.SecondVal
 	case POW:
-		result = math.Pow(expr.FirstVal, expr.SecondVal)
+		result = math.Pow(e.FirstVal, e.SecondVal)
 	default:
 	}
 
-	return result
+	e.Result = result
 }
 
-func isOperand(v string) bool {
+func isOperator(v string) bool {
 	switch v {
 	case ADD, SUB, DIV, MULT, POW:
 		return true

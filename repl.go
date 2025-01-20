@@ -27,7 +27,7 @@ func StartRepl() {
 			return
 		}
 		expr = strings.TrimSpace(expr)
-		if expr == ".quit" {
+		if expr == ".exit" {
 			fmt.Println(colorize(DIM, "\\. See ya"))
 			return
 		} else if strings.HasPrefix(expr, ".help") {
@@ -37,15 +37,21 @@ func StartRepl() {
 			fmt.Println(colorize(REDISH, "Unkown Command"))
 			continue
 		}
-		st, err := Parse(expr)
-		if err != nil {
-			fmt.Println(colorize(REDISH, err.Error()))
-			continue
+		st := NewStack()
+		evaled := Eval(expr)
+		st.Push(*evaled)
+
+		for _, expression := range st.Expressions {
+			if expression.Err != nil {
+				fmt.Println(colorize(REDISH, expression.Err.Error()))
+				continue
+			}
+
+			fmt.Println(colorize(DARK, fmt.Sprintf("%.3f", expression.Result)))
 		}
-		res := st.Eval()
-		fmt.Println(colorize(DARK, fmt.Sprintf("%v", res)))
 	}
 }
+
 func printHelp(cmd string) {
 	expression := `
 Pol is a calculator that uses a slightly modified reverse polish notation
@@ -60,7 +66,7 @@ Currently only supports a max of 2 grouped expressions not space separated
 `
 	commands := `
 Available Commands:
-	.quit           ~ exits the REPL
+	.exit           ~ exits the REPL
 	.help <subcmd>  ~ shows docs on the subcommand
 	      expr      ~ shows documentation on expressions
 	      cmds      ~ shows help on commands
