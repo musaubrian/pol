@@ -37,18 +37,18 @@ func StartRepl() {
 			fmt.Println(colorize(REDISH, "Unkown Command"))
 			continue
 		}
-		st := NewStack()
+		// st := NewStack()
 		evaled := Eval(expr)
-		st.Push(*evaled)
+		// st.Push(*evaled)
 
-		for _, expression := range st.Expressions {
-			if expression.Err != nil {
-				fmt.Println(colorize(REDISH, expression.Err.Error()))
-				continue
-			}
-
-			fmt.Println(colorize(DARK, fmt.Sprintf("%.3f", expression.Result)))
+		// for _, expression := range st.Expressions {
+		if evaled.Err != nil {
+			fmt.Println(colorize(REDISH, evaled.Err.Error()))
+			continue
 		}
+
+		fmt.Println(colorize(DARK, fmt.Sprintf("%.3f", evaled.Result)))
+		// }
 	}
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"math"
 	"os"
@@ -24,12 +25,18 @@ func Eval(expression string) *Expr {
 	expr := &Expr{}
 
 	if strings.HasPrefix(expression, "(") {
-		evalGroup(expression)
+		return evalGroup(expression)
 	}
 
 	exprVals := []float64{}
+	splitExpr := strings.Split(expression, " ")
+	if len(splitExpr) < 3 {
+		return &Expr{
+			Err: errors.New("Invalid expression"),
+		}
+	}
 
-	for _, char := range strings.Split(expression, " ") {
+	for _, char := range splitExpr {
 
 		val, err := strconv.ParseFloat(char, 64)
 		if err != nil {
@@ -47,36 +54,44 @@ func Eval(expression string) *Expr {
 
 			return &Expr{
 				Raw: expression,
-				Err: fmt.Errorf("Incomplete Expression"),
+				Err: errors.New("Invalid Expression"),
 			}
 		}
 		exprVals = append(exprVals, val)
 	}
 
-	fmt.Println("GROUPD: ", expr)
 	return expr
 }
 
 func evalGroup(expression string) *Expr {
 	// group: (7 9 -) (4 6 ^) -
-	fmt.Println("GROUP: ", expression)
-
 	exprVals := []float64{}
+	currentVals := []float64{}
 	e := &Expr{}
-	st := NewStack()
 
-	for _, char := range expression {
+	for i, char := range expression {
 		switch {
 		case char == '(' || unicode.IsSpace(char):
 			continue
 		case char == ')':
-			fmt.Println("End of expr, evaluate here", e)
-			st.Push(*e)
+			currentVals = append(currentVals, e.Result)
+			expr := expression[i+2] // skip the space
+			if isOperator(string(expr)) {
+				g := &Expr{
+					Raw:       expression,
+					FirstVal:  currentVals[len(currentVals)-2],
+					SecondVal: currentVals[len(currentVals)-1],
+					Operation: string(expr),
+				}
+				g.calc()
+				return g
+
+			}
 
 		case unicode.IsNumber(char):
 			num, err := strconv.ParseFloat(string(char), 64)
 			if err != nil {
-				fmt.Println("Failed to convert: ", string(char))
+				e.Err = fmt.Errorf("Failed to convert: %s", string(char))
 			}
 			exprVals = append(exprVals, num)
 		case isOperator(string(char)) && len(exprVals) >= 2:
@@ -87,7 +102,6 @@ func evalGroup(expression string) *Expr {
 		}
 	}
 
-	fmt.Println("create new expression", st)
 	return e
 }
 

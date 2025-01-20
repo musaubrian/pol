@@ -19,7 +19,13 @@ func TestRPNEval(t *testing.T) {
 		},
 		{
 			expr: "((4 2 -) (4 2 ^) -) (5 7 +) -",
-			want: Expr{FirstVal: -2, SecondVal: 4096, Operation: "-", Raw: "(7 9 -) (4 6 ^) -", Result: -4098},
+			want: Expr{
+				FirstVal:  -4098,
+				SecondVal: 12,
+				Operation: "-",
+				Raw:       "((4 2 -) (4 2 ^) -) (5 7 +) -",
+				Result:    -4110,
+			},
 		},
 	}
 	for _, c := range cases {

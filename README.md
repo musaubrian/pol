@@ -18,3 +18,10 @@ go build .
 ```sh
 ./pol -h
 ```
+
+- [x] Single Expression
+- [ ] Grouped Expressions
+     - [x] 2 Groups
+     - [ ] Nested grouped expressions
+- [x] file input expression evaluation
+- [x] REPL
