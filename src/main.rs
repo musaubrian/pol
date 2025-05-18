@@ -11,11 +11,11 @@ fn main() {
             "-f" | "--file" => {
                 if let Some(file_path) = args.next() {
                     match eval_file(&file_path) {
-                        Ok(_) => println!(""),
+                        Ok(outpath) => println!("solution generated at {outpath}"),
                         Err(e) => eprintln!("{e}"),
                     };
                 } else {
-                    eprintln!("ERR: Missing filename");
+                    eprintln!("[ARG ERR]: Missing filename");
                     usage()
                 }
             }

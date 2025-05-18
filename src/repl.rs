@@ -68,6 +68,10 @@ pub fn start() {
                     "{}",
                     colorize(ColorCode::RED, "Division By Zero".to_string())
                 ),
+                rpn::PolErr::FileParseErr(_) => eprintln!(
+                    "{}",
+                    colorize(ColorCode::RED, "repl can't handle files yet".to_string())
+                ),
             },
         }
     }

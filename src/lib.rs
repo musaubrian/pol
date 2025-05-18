@@ -10,6 +10,8 @@ pub enum PolErr {
     InvalidOperator(String),
     NotEnoughValues(String),
     DivisionByZero,
+
+    FileParseErr(String),
 }
 
 impl From<ParseFloatError> for PolErr {
@@ -21,10 +23,11 @@ impl From<ParseFloatError> for PolErr {
 impl fmt::Display for PolErr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            PolErr::ParseError(e) => write!(f, "Parse error: {}", e),
-            PolErr::InvalidOperator(op) => write!(f, "Invalid operator: {}", op),
-            PolErr::NotEnoughValues(p) => write!(f, "> {p}\n Not enough values on stack"),
-            PolErr::DivisionByZero => write!(f, "Division by zero"),
+            PolErr::ParseError(e) => write!(f, "[PARSE ERR]: {e}"),
+            PolErr::InvalidOperator(op) => write!(f, "[OPERATOR ERR]: invalid operator: {op}"),
+            PolErr::NotEnoughValues(p) => write!(f, "[STACK ERR]: {p}"),
+            PolErr::DivisionByZero => write!(f, "[DIVISION ERR]: division by zero not allowed"),
+            PolErr::FileParseErr(err) => write!(f, "[FILE ERR]: {err}"),
         }
     }
 }

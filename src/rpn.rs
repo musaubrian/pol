@@ -1,12 +1,12 @@
 pub(crate) use crate::PolErr;
 
 #[derive(Debug, PartialEq)]
-pub enum Operation {
-    Multiply,
-    Addition,
-    Subtraction,
-    Divide,
-    Power,
+pub enum Op {
+    Mult,
+    Add,
+    Minus,
+    Div,
+    Pow,
     Unknown,
 }
 
@@ -24,7 +24,7 @@ pub fn eval(content: &str) -> Result<f64, PolErr> {
             }
 
             let operation = map_operation(token);
-            if operation == Operation::Unknown {
+            if operation == Op::Unknown {
                 return Err(PolErr::InvalidOperator(token.to_string()));
             }
 
@@ -44,14 +44,14 @@ pub fn eval(content: &str) -> Result<f64, PolErr> {
     Ok(res)
 }
 
-fn calc(a: f64, b: f64, op: Operation) -> Result<f64, PolErr> {
+fn calc(a: f64, b: f64, op: Op) -> Result<f64, PolErr> {
     match op {
-        Operation::Multiply => Ok(a * b),
-        Operation::Addition => Ok(a + b),
-        Operation::Subtraction => Ok(a - b),
-        Operation::Power => Ok(a.powf(b)),
-        Operation::Unknown => panic!("State should not be possible"),
-        Operation::Divide => {
+        Op::Mult => Ok(a * b),
+        Op::Add => Ok(a + b),
+        Op::Minus => Ok(a - b),
+        Op::Pow => Ok(a.powf(b)),
+        Op::Unknown => panic!("State should not be possible"),
+        Op::Div => {
             if b == 0.0 {
                 return Err(PolErr::DivisionByZero);
             }
@@ -66,14 +66,14 @@ fn is_operator(token: &str) -> bool {
     }
 }
 
-fn map_operation(v: &str) -> Operation {
+fn map_operation(v: &str) -> Op {
     match v {
-        "+" => Operation::Addition,
-        "-" => Operation::Subtraction,
-        "*" => Operation::Multiply,
-        "/" => Operation::Divide,
-        "^" => Operation::Power,
-        _ => Operation::Unknown,
+        "+" => Op::Add,
+        "-" => Op::Minus,
+        "*" => Op::Mult,
+        "/" => Op::Div,
+        "^" => Op::Pow,
+        _ => Op::Unknown,
     }
 }
 

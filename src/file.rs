@@ -1,8 +1,14 @@
-use crate::rpn;
+use crate::{PolErr, rpn};
 
-pub fn eval_file(path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let file_contents = std::fs::read_to_string(path)?;
-    let solutions_file = format!("{path}.solution");
+pub fn eval_file(path: &str) -> Result<String, PolErr> {
+    let file_contents = match std::fs::read_to_string(path) {
+        Ok(contents) => contents,
+        Err(e) => return Err(PolErr::FileParseErr(e.to_string())),
+    };
+
+    let id = gen_random_id(5);
+    let solutions_file = format!("{path}_{id}");
+
     let mut solutions_buf = String::new();
 
     for line in file_contents.split('\n') {
@@ -16,7 +22,25 @@ pub fn eval_file(path: &str) -> Result<(), Box<dyn std::error::Error>> {
         solutions_buf.push_str(&string);
     }
 
-    std::fs::write(&solutions_file, solutions_buf)?;
+    match std::fs::write(&solutions_file, solutions_buf) {
+        Ok(_) => Ok(solutions_file),
+        Err(err) => return Err(PolErr::FileParseErr(err.to_string())),
+    }
+}
 
-    Ok(())
+fn gen_random_id(word_len: u8) -> String {
+    let _ = word_len;
+    // wl := 3
+    // cs := "BCDFGHJKLMNPQRSTVWXZY"
+    // vs := "AEIOU"
+    // var result string
+    //
+    // for i := 0; i < wl; i++ {
+    // 	result += string(cs[rand.Intn(len(cs))])
+    // 	result += string(vs[rand.Intn(len(vs))])
+    // }
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let mut rand_id = String::new();
+
+    rand_id
 }
