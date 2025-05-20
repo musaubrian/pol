@@ -1,3 +1,5 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use crate::{PolErr, rpn};
 
 pub fn eval_file(path: &str) -> Result<String, PolErr> {
@@ -6,8 +8,10 @@ pub fn eval_file(path: &str) -> Result<String, PolErr> {
         Err(e) => return Err(PolErr::FileParseErr(e.to_string())),
     };
 
-    let id = gen_random_id(5);
-    let solutions_file = format!("{path}_{id}");
+    let now = SystemTime::now();
+    let since_epoch = now.duration_since(UNIX_EPOCH)?.as_millis();
+
+    let solutions_file = format!("{since_epoch}_{path}");
 
     let mut solutions_buf = String::new();
 
@@ -26,21 +30,4 @@ pub fn eval_file(path: &str) -> Result<String, PolErr> {
         Ok(_) => Ok(solutions_file),
         Err(err) => return Err(PolErr::FileParseErr(err.to_string())),
     }
-}
-
-fn gen_random_id(word_len: u8) -> String {
-    let _ = word_len;
-    // wl := 3
-    // cs := "BCDFGHJKLMNPQRSTVWXZY"
-    // vs := "AEIOU"
-    // var result string
-    //
-    // for i := 0; i < wl; i++ {
-    // 	result += string(cs[rand.Intn(len(cs))])
-    // 	result += string(vs[rand.Intn(len(vs))])
-    // }
-    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let mut rand_id = String::new();
-
-    rand_id
 }

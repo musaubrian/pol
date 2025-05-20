@@ -72,6 +72,7 @@ pub fn start() {
                     "{}",
                     colorize(ColorCode::RED, "repl can't handle files yet".to_string())
                 ),
+                _ => panic!("Shouldn't ever happen"),
             },
         }
     }

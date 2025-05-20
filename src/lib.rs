@@ -1,4 +1,4 @@
-use std::{fmt, num::ParseFloatError};
+use std::{fmt, num::ParseFloatError, time::SystemTimeError};
 
 pub mod file;
 pub mod repl;
@@ -12,11 +12,17 @@ pub enum PolErr {
     DivisionByZero,
 
     FileParseErr(String),
+    SystemTimeErr(String),
 }
 
 impl From<ParseFloatError> for PolErr {
     fn from(err: ParseFloatError) -> Self {
         PolErr::ParseError(err)
+    }
+}
+impl From<SystemTimeError> for PolErr {
+    fn from(err: SystemTimeError) -> Self {
+        PolErr::SystemTimeErr(err.to_string())
     }
 }
 
@@ -28,6 +34,7 @@ impl fmt::Display for PolErr {
             PolErr::NotEnoughValues(p) => write!(f, "[STACK ERR]: {p}"),
             PolErr::DivisionByZero => write!(f, "[DIVISION ERR]: division by zero not allowed"),
             PolErr::FileParseErr(err) => write!(f, "[FILE ERR]: {err}"),
+            PolErr::SystemTimeErr(e) => write!(f, "[SYSTEM TIME ERR]: {e}"),
         }
     }
 }
